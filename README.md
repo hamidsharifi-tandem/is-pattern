@@ -108,8 +108,13 @@ Formatted values are automatically stripped before the form submits:
   <input type="text" is-pattern="(000) 000-0000" name="phone">
   <!-- user sees: (336) 123-4567 -->
   <!-- server receives: 3361234567 -->
+
+  <input type="text" is-pattern="(000) 000-0000" name="phone" is-pattern-keep>
+  <!-- user sees: (336) 123-4567 -->
+  <!-- server receives: (336) 123-4567 -->
 </form>
 ```
+Add `is-pattern-keep` attribute to any input you want to skip unformatting
 
 ### Manual API
 ```js
