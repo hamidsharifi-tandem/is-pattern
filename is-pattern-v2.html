@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>is-pattern.js v2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0a0a0a;--surface:#111;--border:#1e1e1e;--accent:#e8ff47;--text:#f0f0f0;--muted:#555;--code-bg:#0e0e0e;--red:#ff4f4f;--green:#4fffb0}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding:60px 24px}
+  .wrap{max-width:760px;margin:0 auto}
+
+  /* HEADER */
+  header{margin-bottom:64px}
+  .badges{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .badge{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:4px 10px;border-radius:2px;letter-spacing:.08em}
+  .badge-accent{background:var(--accent);color:#000}
+  .badge-outline{border:1px solid var(--border);color:var(--muted)}
+  h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:800;line-height:1.05;letter-spacing:-.03em;margin-bottom:16px}
+  h1 span{color:var(--accent)}
+  .subtitle{color:var(--muted);font-size:1rem;line-height:1.6;max-width:520px}
+
+  /* SECTIONS */
+  .section-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  .demos{display:grid;gap:10px;margin-bottom:48px}
+
+  /* TEXT CARDS */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .card-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:5px}
+  .card-value{font-size:1.1rem;font-weight:700}
+  .card-pattern{font-family:'DM Mono',monospace;font-size:11px;background:var(--code-bg);color:var(--accent);padding:4px 10px;border-radius:4px;white-space:nowrap;border:1px solid #1e1e1e}
+
+  /* INPUT CARDS */
+  .inputs{display:grid;gap:10px;margin-bottom:48px}
+  .input-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 22px}
+  .input-card label{display:block;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:.06em}
+  .input-card input{width:100%;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:1.05rem;padding:12px 16px;outline:none;transition:border-color .2s}
+  .input-card input:focus{border-color:var(--accent)}
+  .input-card input::placeholder{color:var(--muted)}
+  .input-card input.is-pattern-invalid{border-color:var(--red)}
+  .input-card input.is-pattern-valid{border-color:var(--green)}
+  .validation-msg{font-family:'DM Mono',monospace;font-size:11px;margin-top:7px;height:14px;transition:color .2s}
+  .validation-msg.invalid{color:var(--red)}
+  .validation-msg.valid{color:var(--green)}
+
+  /* MANUAL API DEMO */
+  .api-demo{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:48px}
+  .api-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .api-demo input{flex:1;min-width:140px;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:.95rem;padding:10px 14px;outline:none;transition:border-color .2s}
+  .api-demo input:focus{border-color:var(--accent)}
+  .api-demo button{background:var(--accent);color:#000;border:none;border-radius:6px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;padding:10px 20px;cursor:pointer;transition:opacity .15s}
+  .api-demo button:hover{opacity:.85}
+  .api-result{font-family:'DM Mono',monospace;font-size:1.1rem;color:var(--accent);min-height:28px;padding:10px 14px;background:var(--code-bg);border-radius:6px;border:1px solid var(--border)}
+
+  /* FORM DEMO */
+  .form-demo{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:48px}
+  .form-demo input{width:100%;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:1rem;padding:11px 14px;outline:none;margin-bottom:10px;transition:border-color .2s}
+  .form-demo input:focus{border-color:var(--accent)}
+  .form-demo button{background:var(--accent);color:#000;border:none;border-radius:6px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;padding:10px 22px;cursor:pointer}
+  .form-output{font-family:'DM Mono',monospace;font-size:12px;color:var(--green);margin-top:12px;min-height:20px}
+
+  /* MUTATION DEMO */
+  .mutation-demo{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:48px}
+  .mutation-demo button{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;padding:9px 20px;cursor:pointer;margin-bottom:14px;transition:background .2s,color .2s}
+  .mutation-demo button:hover{background:var(--accent);color:#000}
+  .mutation-container{display:grid;gap:8px}
+  .mutation-item{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:12px 16px;font-family:'DM Mono',monospace;font-size:.95rem;animation:fadeIn .3s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* CODE */
+  .code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:24px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.9;color:#888;overflow-x:auto;margin-bottom:48px;white-space:pre}
+  .kw{color:var(--accent)}.str{color:#f97316}.cm{color:#333}
+
+  footer{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding-top:24px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="badges">
+      <span class="badge badge-accent">v2.0</span>
+      <span class="badge badge-outline">~120 lines</span>
+      <span class="badge badge-outline">zero deps</span>
+      <span class="badge badge-outline">Webflow ready</span>
+    </div>
+    <h1>is-<span>pattern</span>.js</h1>
+    <p class="subtitle">Attribute-driven formatting for inputs and text. The pattern value is exactly what you want to see — no config, no presets.</p>
+  </header>
+
+  <!-- TEXT -->
+  <div class="section-label">01 — Text formatting · instant on load</div>
+  <div class="demos">
+    <div class="card">
+      <div><div class="card-label">Phone</div><div class="card-value" is-pattern="(000) 000-0000">3361234567</div></div>
+      <div class="card-pattern">(000) 000-0000</div>
+    </div>
+    <div class="card">
+      <div><div class="card-label">Currency</div><div class="card-value" is-pattern="$0,000.00">98765</div></div>
+      <div class="card-pattern">$0,000.00</div>
+    </div>
+    <div class="card">
+      <div><div class="card-label">Credit Card</div><div class="card-value" is-pattern="0000 0000 0000 0000">4111111122223333</div></div>
+      <div class="card-pattern">0000 0000 0000 0000</div>
+    </div>
+    <div class="card">
+      <div><div class="card-label">Date</div><div class="card-value" is-pattern="00/00/0000">12252026</div></div>
+      <div class="card-pattern">00/00/0000</div>
+    </div>
+    <div class="card">
+      <div><div class="card-label">SSN</div><div class="card-value" is-pattern="000-00-0000">123456789</div></div>
+      <div class="card-pattern">000-00-0000</div>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="section-label">02 — Input formatting · real-time · validation</div>
+  <div class="inputs">
+    <div class="input-card">
+      <label>Phone · (000) 000-0000</label>
+      <input type="text" is-pattern="(000) 000-0000" placeholder="(555) 867-5309">
+      <div class="validation-msg"></div>
+    </div>
+    <div class="input-card">
+      <label>Credit Card · 0000 0000 0000 0000</label>
+      <input type="text" is-pattern="0000 0000 0000 0000" placeholder="4111 1111 1111 1111">
+      <div class="validation-msg"></div>
+    </div>
+    <div class="input-card">
+      <label>Date · 00/00/0000</label>
+      <input type="text" is-pattern="00/00/0000" placeholder="MM/DD/YYYY">
+      <div class="validation-msg"></div>
+    </div>
+    <div class="input-card">
+      <label>Currency · $0,000.00</label>
+      <input type="text" is-pattern="$0,000.00" placeholder="$1,234.56">
+      <div class="validation-msg"></div>
+    </div>
+  </div>
+
+  <!-- MANUAL API -->
+  <div class="section-label">03 — Manual API · window.IsPattern.format(value, pattern)</div>
+  <div class="api-demo">
+    <div class="api-row">
+      <input id="api-value" type="text" placeholder="Raw value e.g. 3361234567">
+      <input id="api-pattern" type="text" placeholder="Pattern e.g. (000) 000-0000">
+      <button onclick="runApi()">Format</button>
+    </div>
+    <div class="api-result" id="api-result">—</div>
+  </div>
+
+  <!-- FORM UNFORMAT -->
+  <div class="section-label">04 — Form submit · auto-unformats before sending</div>
+  <div class="form-demo">
+    <form id="demo-form">
+      <input type="text" is-pattern="(000) 000-0000" name="phone" placeholder="Type a phone number...">
+      <input type="text" is-pattern="0000 0000 0000 0000" name="card" placeholder="Type a card number...">
+      <button type="submit">Submit (check output below)</button>
+    </form>
+    <div class="form-output" id="form-output"></div>
+  </div>
+
+  <!-- MUTATION OBSERVER -->
+  <div class="section-label">05 — MutationObserver · formats elements added after load</div>
+  <div class="mutation-demo">
+    <button onclick="addDynamic()">+ Inject dynamic element</button>
+    <div class="mutation-container" id="mutation-container"></div>
+  </div>
+
+  <!-- USAGE -->
+  <div class="section-label">06 — Usage</div>
+  <div class="code-block"><span class="cm">/* ── Text node: formats on load ─────────────── */</span>
+&lt;<span class="kw">span</span> <span class="kw">is-pattern</span>=<span class="str">"(000) 000-0000"</span>&gt;3361234567&lt;/span&gt;
+
+<span class="cm">/* ── Input: real-time as user types ─────────── */</span>
+&lt;<span class="kw">input</span> <span class="kw">is-pattern</span>=<span class="str">"(000) 000-0000"</span>&gt;
+
+<span class="cm">/* ── Manual API ──────────────────────────────── */</span>
+window.IsPattern.format(<span class="str">'3361234567'</span>, <span class="str">'(000) 000-0000'</span>)
+<span class="cm">// → "(336) 123-4567"</span>
+
+<span class="cm">/* ── Pattern tokens ──────────────────────────── */</span>
+<span class="cm">  0  →  digit (0–9)</span>
+<span class="cm">  A  →  letter (a–z A–Z)</span>
+<span class="cm">  *  →  any character</span>
+<span class="cm">  $  →  currency prefix (triggers currency mode)</span>
+<span class="cm">  everything else → literal (kept as-is)</span></div>
+
+  <footer>is-pattern.js v2 · MIT · No dependencies · Works in Webflow, plain HTML, anywhere</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   is-pattern.js v2
+   - Text formatting on load
+   - Real-time input formatting with smart cursor
+   - Paste handling
+   - Validation feedback (is-pattern-valid / is-pattern-invalid)
+   - Form auto-unformat on submit
+   - MutationObserver for dynamic content
+   - window.IsPattern.format(value, pattern) manual API
+   ============================================================ */
+(function (global) {
+
+  // ── Core formatter ────────────────────────────────────────
+  function format(raw, pattern) {
+    if (!raw || !pattern) return raw || '';
+    var isCurrency = /^\$/.test(pattern) && /[,\.]/.test(pattern);
+    if (isCurrency) return formatCurrency(raw, pattern);
+    var clean = raw.replace(/[^a-zA-Z0-9]/g, '');
+    var out = '', ri = 0;
+    for (var pi = 0; pi < pattern.length; pi++) {
+      if (ri >= clean.length) break;
+      var p = pattern[pi];
+      if (p === '0') {
+        if (/\d/.test(clean[ri])) { out += clean[ri++]; }
+        else { ri++; pi--; }
+      } else if (p === 'A') {
+        if (/[a-zA-Z]/.test(clean[ri])) { out += clean[ri++]; }
+        else { ri++; pi--; }
+      } else if (p === '*') {
+        out += clean[ri++];
+      } else {
+        out += p;
+      }
+    }
+    return out;
+  }
+
+  function formatCurrency(raw, pattern) {
+    var nums = raw.replace(/[^0-9]/g, '');
+    if (!nums) return '';
+    var decMatch = pattern.match(/\.(0+)/);
+    var decimals = decMatch ? decMatch[1].length : 2;
+    var num = parseFloat(nums) / Math.pow(10, decimals);
+    return '$' + num.toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  }
+
+  // ── Unformat: strips non-digits/letters back to raw ──────
+  function unformat(value) {
+    return value.replace(/[^a-zA-Z0-9]/g, '');
+  }
+
+  // ── Expected length of a filled pattern ──────────────────
+  function patternLength(pattern) {
+    var tokens = 0;
+    for (var i = 0; i < pattern.length; i++) {
+      if ('0A*'.indexOf(pattern[i]) !== -1) tokens++;
+    }
+    return tokens;
+  }
+
+  // ── Apply to a text node ──────────────────────────────────
+  function applyText(el) {
+    var pattern = el.getAttribute('is-pattern');
+    if (!pattern) return;
+    var raw = el.textContent.trim();
+    if (raw) el.textContent = format(raw, pattern);
+  }
+
+  // ── Apply to an input ─────────────────────────────────────
+  function applyInput(el) {
+    var pattern = el.getAttribute('is-pattern');
+    if (!pattern) return;
+
+    function update(val) {
+      var pos = el.selectionStart;
+      var formatted = format(val, pattern);
+      el.value = formatted;
+      // smart cursor: count forward past any literals we inserted
+      var newPos = Math.min(pos + (formatted.length - val.length), formatted.length);
+      try { el.setSelectionRange(newPos, newPos); } catch(e) {}
+      // validation
+      var rawLen = unformat(formatted).length;
+      var expected = patternLength(pattern);
+      var msg = el.parentNode && el.parentNode.querySelector('.validation-msg');
+      if (formatted.length === 0) {
+        el.classList.remove('is-pattern-valid','is-pattern-invalid');
+        if (msg) { msg.textContent = ''; msg.className = 'validation-msg'; }
+      } else if (rawLen >= expected) {
+        el.classList.add('is-pattern-valid'); el.classList.remove('is-pattern-invalid');
+        if (msg) { msg.textContent = '✓ valid'; msg.className = 'validation-msg valid'; }
+      } else {
+        el.classList.add('is-pattern-invalid'); el.classList.remove('is-pattern-valid');
+        var rem = expected - rawLen;
+        if (msg) { msg.textContent = rem + ' character' + (rem > 1 ? 's' : '') + ' remaining'; msg.className = 'validation-msg invalid'; }
+      }
+    }
+
+    // input event (typing)
+    el.addEventListener('input', function () { update(el.value); });
+
+    // paste: strip formatting then re-apply
+    el.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var pasted = (e.clipboardData || window.clipboardData).getData('text');
+      var clean = unformat(pasted);
+      // merge with existing clean value at cursor
+      var start = el.selectionStart, end = el.selectionEnd;
+      var currentClean = unformat(el.value);
+      var beforeCursor = unformat(el.value.slice(0, start));
+      var afterCursor = unformat(el.value.slice(end));
+      var merged = beforeCursor + clean + afterCursor;
+      update(format(merged, pattern));
+    });
+
+    // keydown: handle backspace smartly (skip literals)
+    el.addEventListener('keydown', function (e) {
+      if (e.key !== 'Backspace') return;
+      var pos = el.selectionStart;
+      if (pos === 0 || el.selectionStart !== el.selectionEnd) return;
+      // if char before cursor is a literal, skip back past it
+      var prev = el.value[pos - 1];
+      if (prev && unformat(prev) === '') {
+        e.preventDefault();
+        el.setSelectionRange(pos - 1, pos - 1);
+      }
+    });
+  }
+
+  // ── Init: scan existing elements ─────────────────────────
+  function init(root) {
+    root = root || document;
+    root.querySelectorAll('[is-pattern]:not(input):not(textarea)').forEach(applyText);
+    root.querySelectorAll('input[is-pattern], textarea[is-pattern]').forEach(applyInput);
+  }
+
+  // ── Form unformat on submit ───────────────────────────────
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    form.querySelectorAll('input[is-pattern], textarea[is-pattern]').forEach(function (el) {
+      // store formatted for UX, send raw
+      el.dataset.formatted = el.value;
+      el.value = unformat(el.value);
+    });
+    // restore after brief delay (for non-ajax forms)
+    setTimeout(function () {
+      form.querySelectorAll('[data-formatted]').forEach(function (el) {
+        el.value = el.dataset.formatted;
+        delete el.dataset.formatted;
+      });
+    }, 100);
+  }, true);
+
+  // ── MutationObserver: handle dynamic content ──────────────
+  var observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (m) {
+      m.addedNodes.forEach(function (node) {
+        if (node.nodeType !== 1) return;
+        if (node.hasAttribute('is-pattern')) {
+          if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') applyInput(node);
+          else applyText(node);
+        }
+        node.querySelectorAll && node.querySelectorAll('[is-pattern]').forEach(function (el) {
+          if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') applyInput(el);
+          else applyText(el);
+        });
+      });
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // ── Public API ────────────────────────────────────────────
+  global.IsPattern = { format: format, unformat: unformat, init: init };
+
+  // ── Boot ─────────────────────────────────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { init(); });
+  } else {
+    init();
+  }
+
+})(window);
+</script>
+
+<script>
+  // ── Demo helpers ─────────────────────────────────────────
+  function runApi() {
+    var val = document.getElementById('api-value').value;
+    var pat = document.getElementById('api-pattern').value;
+    var result = window.IsPattern.format(val, pat);
+    document.getElementById('api-result').textContent = result || '—';
+  }
+
+  document.getElementById('demo-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var out = [];
+    new FormData(e.target).forEach(function (v, k) { out.push(k + ': "' + v + '"'); });
+    document.getElementById('form-output').textContent = '→ Server receives: { ' + out.join(', ') + ' }';
+  });
+
+  var dynamicSamples = [
+    { pattern: '(000) 000-0000', value: '5042223344' },
+    { pattern: '$0,000.00', value: '4599' },
+    { pattern: '0000 0000 0000 0000', value: '5555444433332222' },
+    { pattern: '00/00/0000', value: '07041776' },
+  ];
+  var di = 0;
+  function addDynamic() {
+    var s = dynamicSamples[di % dynamicSamples.length]; di++;
+    var el = document.createElement('div');
+    el.className = 'mutation-item';
+    el.setAttribute('is-pattern', s.pattern);
+    el.textContent = s.value;
+    document.getElementById('mutation-container').appendChild(el);
+  }
+</script>
+</body>
+</html>
