@@ -36,7 +36,7 @@ Write the pattern exactly as you want it to appear — no config, no presets, no
 
 **CDN (once published):**
 ```html
-<script src="https://cdn.jsdelivr.net/gh/YOUR_USERNAME/is-pattern/is-pattern.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/hamidsharifi-tandem/is-pattern/is-pattern.js"></script>
 ```
 
 ---
@@ -132,7 +132,7 @@ IsPattern.init(document.getElementById('my-container'))
 1. Go to **Page Settings → Custom Code → Before `</body>`**
 2. Paste:
 ```html
-<script src="https://cdn.jsdelivr.net/gh/YOUR_USERNAME/is-pattern/is-pattern.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/hamidsharifi-tandem/is-pattern/is-pattern.js"></script>
 ```
 3. In the Designer, add `is-pattern` as a custom attribute on any element with the pattern as the value.
 
@@ -142,4 +142,4 @@ MutationObserver handles Webflow CMS list rendering automatically — no extra s
 
 ## License
 
-MIT © YOUR_NAME
+MIT © Hamid Sharifi
