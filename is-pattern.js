@@ -1,7 +1,7 @@
 /*!
- * is-pattern.js v2.0
+ * is-pattern.js v2.1
  * Attribute-driven formatting for inputs and text nodes.
- * https://github.com/YOUR_USERNAME/is-pattern
+ * https://github.com/hamidsharifi-tandem/is-pattern
  * MIT License
  */
 (function (global) {
@@ -129,9 +129,12 @@
   }
 
   // ── Form: auto-unformat on submit ─────────────────────────
+  // Add is-pattern-keep attribute to any input to skip unformatting:
+  // <input is-pattern="(000) 000-0000" is-pattern-keep>
   document.addEventListener('submit', function (e) {
     var form = e.target;
     form.querySelectorAll('input[is-pattern], textarea[is-pattern]').forEach(function (el) {
+      if (el.hasAttribute('is-pattern-keep')) return;
       el.dataset.formatted = el.value;
       el.value = unformat(el.value);
     });
